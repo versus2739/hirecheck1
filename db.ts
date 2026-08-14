@@ -1,0 +1,15 @@
+import Database from 'better-sqlite3';
+const db = new Database(process.env.DATABASE_URL || './hirecheck.db');
+db.pragma('journal_mode = WAL');
+export function migrate(){
+ db.exec(`CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, telegram_id TEXT UNIQUE, username TEXT, first_name TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS companies(id INTEGER PRIMARY KEY AUTOINCREMENT, owner_user_id INTEGER, name TEXT NOT NULL, industry TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS integrations(id INTEGER PRIMARY KEY AUTOINCREMENT, company_id INTEGER NOT NULL, provider TEXT NOT NULL, status TEXT DEFAULT 'active', access_token TEXT, refresh_token TEXT, token_expires_at DATETIME, external_account_id TEXT, metadata TEXT, last_synced_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS jobs(id INTEGER PRIMARY KEY AUTOINCREMENT, company_id INTEGER NOT NULL, integration_id INTEGER, external_provider TEXT, external_job_id TEXT, title TEXT NOT NULL, description TEXT NOT NULL, city TEXT, salary_from INTEGER, salary_to INTEGER, currency TEXT, status TEXT DEFAULT 'active', source_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(external_provider, external_job_id));
+ CREATE TABLE IF NOT EXISTS candidates(id INTEGER PRIMARY KEY AUTOINCREMENT, company_id INTEGER NOT NULL, full_name TEXT, phone TEXT, email TEXT, external_provider TEXT, external_candidate_id TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS applications(id INTEGER PRIMARY KEY AUTOINCREMENT, job_id INTEGER NOT NULL, candidate_id INTEGER NOT NULL, integration_id INTEGER, source_provider TEXT NOT NULL, external_application_id TEXT, external_status TEXT, internal_status TEXT DEFAULT 'new', cover_letter TEXT, raw_payload TEXT, applied_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(source_provider, external_application_id));
+ CREATE TABLE IF NOT EXISTS resumes(id INTEGER PRIMARY KEY AUTOINCREMENT, candidate_id INTEGER NOT NULL, application_id INTEGER, source_provider TEXT, external_resume_id TEXT, title TEXT, raw_text TEXT, raw_payload TEXT, file_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS ai_analyses(id INTEGER PRIMARY KEY AUTOINCREMENT, application_id INTEGER NOT NULL, model TEXT, score INTEGER, summary TEXT, strengths TEXT, risks TEXT, missing_info TEXT, interview_questions TEXT, recommended_status TEXT, raw_response TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+ CREATE TABLE IF NOT EXISTS sync_logs(id INTEGER PRIMARY KEY AUTOINCREMENT, integration_id INTEGER, provider TEXT NOT NULL, sync_type TEXT NOT NULL, status TEXT NOT NULL, message TEXT, started_at DATETIME DEFAULT CURRENT_TIMESTAMP, finished_at DATETIME);`)
+}
+export default db;
