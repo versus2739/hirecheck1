@@ -126,11 +126,11 @@ function App(){
     </section>
     <section className="stats"><div><b>{ints.length}</b><span>интеграций</span></div><div><b>{jobs.length}</b><span>вакансий</span></div><div><b>AI</b><span>оценка резюме</span></div></section>
 
-    {tab==='home'&&<HomeTab isCreator={isCreator}/>}    
-    {tab==='integrations'&&<IntegrationsTab ints={ints} busy={busy} connectHH={connectHH} sync={sync}/>}    
-    {tab==='jobs'&&<JobsTab loading={loading} filteredJobs={filteredJobs} query={query} setQuery={setQuery} openJob={openJob}/>}    
-    {tab==='candidates'&&<CandidatesTab setTab={setTab}/>}    
-    {tab==='creator'&&isCreator&&<CreatorTab summary={creatorSummary} leads={creatorLeads} admins={creatorAdmins} busy={busy} scan={creatorScan} reload={loadCreator} addAdmin={()=>setAdminModal(true)} setLeadStatus={leadStatus}/>}    
+    {tab==='home'&&<div className="tabPane" key="home"><HomeTab isCreator={isCreator}/></div>}    
+    {tab==='integrations'&&<div className="tabPane" key="integrations"><IntegrationsTab ints={ints} busy={busy} connectHH={connectHH} sync={sync}/></div>}    
+    {tab==='jobs'&&<div className="tabPane" key="jobs"><JobsTab loading={loading} filteredJobs={filteredJobs} query={query} setQuery={setQuery} openJob={openJob}/></div>}    
+    {tab==='candidates'&&<div className="tabPane" key="candidates"><CandidatesTab setTab={setTab}/></div>}    
+    {tab==='creator'&&isCreator&&<div className="tabPane" key="creator"><CreatorTab summary={creatorSummary} leads={creatorLeads} admins={creatorAdmins} busy={busy} scan={creatorScan} reload={loadCreator} addAdmin={()=>setAdminModal(true)} setLeadStatus={leadStatus}/></div>}    
 
     {adminModal&&<div className="modalBackdrop" onClick={()=>setAdminModal(false)}><div className="creatorModal" onClick={e=>e.stopPropagation()}><button className="modalClose" onClick={()=>setAdminModal(false)}>×</button><div className="modalIcon">👑</div><h3>Добавить создателя</h3><p>Этот пользователь увидит вкладку «Создатель» и сможет управлять лидами.</p><label>Telegram username</label><div className="adminInputWrap"><span>@</span><input autoFocus value={adminInput} onChange={e=>setAdminInput(e.target.value)} placeholder="username"/></div><div className="modalActions"><button className="secondary" onClick={()=>setAdminModal(false)}>Отмена</button><button className="primary" onClick={addCreatorAdmin}>Добавить</button></div></div></div>}
 
