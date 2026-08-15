@@ -112,6 +112,24 @@ function App(){
     </section>
 
     {tab==='home'&&<>
+      <section className="homeTop">
+        <div className="homeTopText">
+          <span className="eyebrow">dashboard</span>
+          <h2>Центр найма</h2>
+          <p>Подключи источник, собери отклики и получи понятный рейтинг кандидатов без ручного просмотра сотен резюме.</p>
+        </div>
+        <div className="miniPreview">
+          <div className="candidateMini good"><span>87</span><b>Мария</b><small>сильный опыт</small></div>
+          <div className="candidateMini mid"><span>72</span><b>Иван</b><small>есть риски</small></div>
+          <div className="candidateMini low"><span>54</span><b>Анна</b><small>нужны вопросы</small></div>
+        </div>
+      </section>
+
+      <section className="homeChips">
+        <button onClick={()=>setTab('integrations')}>🔌 Подключить источники</button>
+        <button onClick={()=>setTab('jobs')}>💼 Смотреть вакансии</button>
+        <button onClick={()=>setTab('candidates')}>👥 Кандидаты</button>
+      </section>
       <section className="workflow">
         <div className="flowCard active"><span>1</span><b>Подключи источник</b><p>HH.ru сейчас, Работа.ру — скоро</p></div>
         <div className="flowLine"/>
