@@ -30,6 +30,18 @@ function App(){
     finally{setLoading(false)}
   }
   useEffect(()=>{load()},[]);
+  useEffect(()=>{
+    const tg=(window as any).Telegram?.WebApp;
+    if(!tg) return;
+    try{
+      tg.ready?.();
+      tg.expand?.();
+      tg.setHeaderColor?.('#071827');
+      tg.setBackgroundColor?.('#071827');
+      tg.setBottomBarColor?.('#071827');
+      tg.requestFullscreen?.();
+    }catch(e){}
+  },[]);
 
   async function connectHH(){
     setBusy('hh');
