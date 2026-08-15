@@ -1,13 +1,13 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
-​
+
 const API=import.meta.env.VITE_API_URL||'';
-​
+
 type Integration={id:number;provider:string;status:string;last_synced_at?:string;created_at?:string};
 type Job={id:number;title:string;city?:string;external_provider?:string;status?:string;created_at?:string};
 type JobDetails={job:Job;applications:any[]};
-​
+
 function App(){
   const [ints,setInts]=useState<Integration[]>([]);
   const [jobs,setJobs]=useState<Job[]>([]);
@@ -16,7 +16,7 @@ function App(){
   const [busy,setBusy]=useState('');
   const [toast,setToast]=useState('');
   const [query,setQuery]=useState('');
-​
+
   function notify(text:string){setToast(text); setTimeout(()=>setToast(''),3200)}
   async function load(){
     setLoading(true);
@@ -30,7 +30,7 @@ function App(){
     finally{setLoading(false)}
   }
   useEffect(()=>{load()},[]);
-​
+
   async function connectHH(){
     setBusy('hh');
     try{const r=await fetch(API+'/api/integrations/hh/connect').then(r=>r.json()); location.href=r.authUrl}
@@ -56,12 +56,12 @@ function App(){
     catch{notify('Ошибка AI-анализа')}
     finally{setBusy('')}
   }
-​
+
   const filteredJobs=useMemo(()=>jobs.filter(j=>(j.title||'').toLowerCase().includes(query.toLowerCase())||(j.city||'').toLowerCase().includes(query.toLowerCase())),[jobs,query]);
   const totalApps=job?.applications?.length||0;
   const analyzed=job?.applications?.filter(a=>a.score!=null).length||0;
   const avg=job?.applications?.length?Math.round(job.applications.reduce((s,a)=>s+(Number(a.score)||0),0)/Math.max(1,analyzed)):0;
-​
+
   if(job){
     return <main className="app">
       <div className="orb orb1"/><div className="orb orb2"/>
@@ -81,7 +81,7 @@ function App(){
       </article>)}</div>
     </main>
   }
-​
+
   return <main className="app">
     <div className="orb orb1"/><div className="orb orb2"/>
     {toast&&<div className="toast">{toast}</div>}
@@ -91,17 +91,18 @@ function App(){
         <div className="heroActions"><button className="primary" onClick={connectHH} disabled={busy==='hh'}>{busy==='hh'?'Открываю HH…':'Подключить HH.ru'}</button><button className="secondary" onClick={load}>Обновить</button></div>
       </div>
     </section>
-​
+
     <section className="stats">
       <div><b>{ints.length}</b><span>интеграций</span></div><div><b>{jobs.length}</b><span>вакансий</span></div><div><b>AI</b><span>оценка резюме</span></div>
     </section>
-​
+
     <section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section>
     <div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}</div>
-​
+
     <section className="sectionHead"><div><h2>Вакансии</h2><p>Открой вакансию, чтобы посмотреть кандидатов и запустить AI-анализ.</p></div><input className="search" placeholder="Поиск вакансии…" value={query} onChange={e=>setQuery(e.target.value)}/></section>
     {loading?<div className="loader">Загружаю…</div>:<div className="grid jobs">{filteredJobs.map(j=><article className="jobCard" key={j.id} onClick={()=>openJob(j.id)}><span className="badge">{j.external_provider||'manual'}</span><h3>{j.title}</h3><p>{j.city||'Город не указан'}</p><div className="openHint">Открыть →</div></article>)}{!filteredJobs.length&&<article className="empty"><h3>Вакансий пока нет</h3><p>После подключения HH или ручного режима здесь появится список.</p></article>}</div>}
   </main>
 }
 function Score({score}:{score:any}){const n=Number(score); return <strong className={(n>=80?'good':n>=55?'mid':'low')+' score'}>{score??'—'}</strong>}
-​
+
+createRoot(document.getElementById('root')!).render(<App/>);
