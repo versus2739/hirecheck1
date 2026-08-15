@@ -108,6 +108,25 @@ function App(){
       <div><b>{ints.length}</b><span>интеграций</span></div><div><b>{jobs.length}</b><span>вакансий</span></div><div><b>AI</b><span>оценка резюме</span></div>
     </section>
 
+    <section className="workflow">
+      <div className="flowCard active"><span>1</span><b>Подключи источник</b><p>HH.ru сейчас, Работа.ру — скоро</p></div>
+      <div className="flowLine"/>
+      <div className="flowCard"><span>2</span><b>Собери отклики</b><p>Вакансии и кандидаты подтянутся автоматически</p></div>
+      <div className="flowLine"/>
+      <div className="flowCard"><span>3</span><b>Запусти AI</b><p>Score, риски и вопросы для интервью</p></div>
+    </section>
+
+    <section className="featureGrid">
+      <article><div className="featureIcon">⚡</div><h3>Быстрый шортлист</h3><p>AI выделит лучших кандидатов из потока откликов.</p></article>
+      <article><div className="featureIcon">🎯</div><h3>Точные вопросы</h3><p>Для каждого кандидата — персональные вопросы по слабым местам.</p></article>
+      <article><div className="featureIcon">📣</div><h3>Лиды для роста</h3><p>Создатель может искать бизнесы с активными вакансиями через Telegram.</p></article>
+    </section>
+
+    <section className="creatorPanel">
+      <div><span className="eyebrow">creator mode</span><h2>Панель создателя</h2><p>В Telegram доступны команды /admin, /scan и /leads — бот найдёт компании с активными вакансиями на HH.ru и подготовит текст обращения.</p></div>
+      <div className="terminalCard"><code>/scan</code><code>/leads</code><code>/add_admin username</code></div>
+    </section>
+
     <section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section>
     <div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}<article className="glassCard rabotaSoon"><div className="cardTop"><div className="provider rabotaProvider">р</div><span className="status soon">скоро</span></div><h3>Работа.ру</h3><p>Интеграция с Работа.ру скоро появится: вакансии, отклики и резюме кандидатов.</p><button className="smallBtn disabledBtn" disabled>Работа.ру скоро</button></article></div>
 
