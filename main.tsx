@@ -7,7 +7,7 @@ const API=import.meta.env.VITE_API_URL||'';
 type Integration={id:number;provider:string;status:string;last_synced_at?:string;created_at?:string};
 type Job={id:number;title:string;city?:string;external_provider?:string;status?:string;created_at?:string};
 type JobDetails={job:Job;applications:any[]};
-type Tab='home'|'jobs'|'candidates'|'integrations';
+type Tab='home'|'jobs'|'candidates'|'integrations'|'creator';
 
 function App(){
   const [ints,setInts]=useState<Integration[]>([]);
@@ -20,6 +20,10 @@ function App(){
   const [tab,setTab]=useState<Tab>('home');
   const tgUser=(window as any).Telegram?.WebApp?.initDataUnsafe?.user;
   const isCreator=['blodoyyy'].includes(String(tgUser?.username||'').toLowerCase());
+  const username=String(tgUser?.username||'Blodoyyy');
+  const [creatorSummary,setCreatorSummary]=useState<any>(null);
+  const [creatorLeads,setCreatorLeads]=useState<any[]>([]);
+  const [creatorAdmins,setCreatorAdmins]=useState<any[]>([]);
 
   function notify(text:string){setToast(text); setTimeout(()=>setToast(''),3200)}
   async function load(){
@@ -72,6 +76,36 @@ function App(){
   const analyzed=allApps.filter(a=>a.score!=null).length;
   const avg=allApps.length?Math.round(allApps.reduce((s,a)=>s+(Number(a.score)||0),0)/Math.max(1,analyzed)):0;
 
+
+  async function loadCreator(){
+    if(!isCreator) return;
+    try{
+      const qs='?username='+encodeURIComponent(username);
+      const [summary,leads,admins]=await Promise.all([
+        fetch(API+'/api/creator/summary'+qs).then(r=>r.json()),
+        fetch(API+'/api/creator/leads'+qs).then(r=>r.json()),
+        fetch(API+'/api/creator/admins'+qs).then(r=>r.json())
+      ]);
+      setCreatorSummary(summary); setCreatorLeads(Array.isArray(leads)?leads:[]); setCreatorAdmins(Array.isArray(admins)?admins:[]);
+    }catch{notify('Не удалось загрузить панель создателя')}
+  }
+  async function creatorScan(){
+    setBusy('creator-scan');
+    try{const r=await fetch(API+'/api/creator/scan?username='+encodeURIComponent(username),{method:'POST'}).then(r=>r.json()); notify(`Скан готов: новых ${r.added||0}, просмотрено ${r.seen||0}`); await loadCreator();}
+    catch{notify('Ошибка скана')}
+    finally{setBusy('')}
+  }
+  async function leadStatus(id:number,status:string){
+    await fetch(API+`/api/creator/leads/${id}/status?username=${encodeURIComponent(username)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    await loadCreator();
+  }
+  async function addCreatorAdmin(){
+    const u=prompt('Telegram username без @'); if(!u) return;
+    await fetch(API+'/api/creator/admins?username='+encodeURIComponent(username),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_username:u})});
+    notify('Админ добавлен'); await loadCreator();
+  }
+  useEffect(()=>{ if(tab==='creator') loadCreator(); },[tab]);
+
   if(job){
     return <main className="app">
       <div className="orb orb1"/><div className="orb orb2"/>{toast&&<div className="toast">{toast}</div>}
@@ -94,12 +128,14 @@ function App(){
     {tab==='integrations'&&<IntegrationsTab ints={ints} busy={busy} connectHH={connectHH} sync={sync}/>}    
     {tab==='jobs'&&<JobsTab loading={loading} filteredJobs={filteredJobs} query={query} setQuery={setQuery} openJob={openJob}/>}    
     {tab==='candidates'&&<CandidatesTab setTab={setTab}/>}    
+    {tab==='creator'&&isCreator&&<CreatorTab summary={creatorSummary} leads={creatorLeads} admins={creatorAdmins} busy={busy} scan={creatorScan} reload={loadCreator} addAdmin={addCreatorAdmin} setLeadStatus={leadStatus}/>}    
 
     <nav className="bottomNav">
       <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span>🏠</span>Главная</button>
       <button className={tab==='jobs'?'active':''} onClick={()=>setTab('jobs')}><span>💼</span>Вакансии</button>
       <button className={tab==='candidates'?'active':''} onClick={()=>setTab('candidates')}><span>👥</span>Кандидаты</button>
       <button className={tab==='integrations'?'active':''} onClick={()=>setTab('integrations')}><span>🔌</span>Интеграции</button>
+      {isCreator&&<button className={tab==='creator'?'active':''} onClick={()=>setTab('creator')}><span>👑</span>Создатель</button>}
     </nav>
   </main>
 }
@@ -117,6 +153,15 @@ function IntegrationsTab({ints,busy,connectHH,sync}:{ints:Integration[];busy:str
 function JobsTab({loading,filteredJobs,query,setQuery,openJob}:{loading:boolean;filteredJobs:Job[];query:string;setQuery:(v:string)=>void;openJob:(id:number)=>void}){return <><section className="sectionHead"><div><h2>Вакансии</h2><p>Открой вакансию, чтобы посмотреть кандидатов и запустить AI-анализ.</p></div><input className="search" placeholder="Поиск вакансии…" value={query} onChange={e=>setQuery(e.target.value)}/></section>{loading?<div className="loader">Загружаю…</div>:<div className="grid jobs">{filteredJobs.map(j=><article className="jobCard" key={j.id} onClick={()=>openJob(j.id)}><span className="badge">{j.external_provider||'manual'}</span><h3>{j.title}</h3><p>{j.city||'Город не указан'}</p><div className="openHint">Открыть →</div></article>)}{!filteredJobs.length&&<article className="empty"><h3>Вакансий пока нет</h3><p>После подключения источника здесь появится список вакансий.</p></article>}</div>}</>}
 
 function CandidatesTab({setTab}:{setTab:(t:Tab)=>void}){return <><section className="sectionHead"><div><h2>Кандидаты</h2><p>Здесь появятся кандидаты после синхронизации откликов.</p></div></section><div className="grid"><article className="empty"><h3>Кандидатов пока нет</h3><p>Подключи HH.ru, синхронизируй вакансии и отклики — потом здесь будет список кандидатов, AI-score и вопросы для интервью.</p><button className="smallBtn" onClick={()=>setTab('integrations')}>Перейти к интеграциям</button></article></div></>}
+
+
+function CreatorTab({summary,leads,admins,busy,scan,reload,addAdmin,setLeadStatus}:{summary:any;leads:any[];admins:any[];busy:string;scan:()=>void;reload:()=>void;addAdmin:()=>void;setLeadStatus:(id:number,status:string)=>void}){return <>
+  <section className="sectionHead"><div><h2>Панель создателя</h2><p>Управление поиском клиентов, лидами и доступами прямо из mini app.</p></div></section>
+  <section className="creatorStats"><div><b>{summary?.leads??'—'}</b><span>всего лидов</span></div><div><b>{summary?.fresh??'—'}</b><span>новые/позже</span></div><div><b>{summary?.contacted??'—'}</b><span>связались</span></div><div><b>{summary?.admins??'—'}</b><span>админов</span></div></section>
+  <section className="creatorActions"><button className="primary" onClick={scan} disabled={busy==='creator-scan'}>{busy==='creator-scan'?'Ищу клиентов…':'Сканировать HH.ru'}</button><button className="secondary" onClick={reload}>Обновить панель</button><button className="secondary" onClick={addAdmin}>Добавить админа</button></section>
+  <section className="creatorBox"><h3>Админы</h3><div className="adminList">{admins.map(a=><span key={a.id}>@{a.telegram_username} · {a.role}</span>)}</div></section>
+  <section className="creatorBox"><h3>Лиды</h3><div className="leadList">{leads.slice(0,12).map(l=><article className="leadCard" key={l.id}><div><b>{l.company_name}</b><p>{l.vacancy_title} · {l.city||'город не указан'}</p><small>{l.reason}</small></div><div className="leadBtns"><a href={l.vacancy_url} target="_blank">Открыть</a><button onClick={()=>navigator.clipboard?.writeText(l.outreach_message||'')}>Копировать</button><button onClick={()=>setLeadStatus(l.id,'contacted')}>Связался</button><button onClick={()=>setLeadStatus(l.id,'hidden')}>Скрыть</button></div></article>)}{!leads.length&&<p className="muted">Лидов пока нет. Запусти сканирование.</p>}</div></section>
+</>}
 
 function Score({score}:{score:any}){const n=Number(score); return <strong className={(n>=80?'good':n>=55?'mid':'low')+' score'}>{score??'—'}</strong>}
 
