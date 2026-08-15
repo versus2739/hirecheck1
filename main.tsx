@@ -7,7 +7,7 @@ const API=import.meta.env.VITE_API_URL||'';
 type Integration={id:number;provider:string;status:string;last_synced_at?:string;created_at?:string};
 type Job={id:number;title:string;city?:string;external_provider?:string;status?:string;created_at?:string};
 type JobDetails={job:Job;applications:any[]};
-type Tab='home'|'jobs'|'candidates'|'integrations'|'creator';
+type Tab='home'|'company'|'jobs'|'candidates'|'integrations'|'creator';
 
 function App(){
   const [ints,setInts]=useState<Integration[]>([]);
@@ -129,7 +129,8 @@ function App(){
     </section>
     <section className="stats"><div><b>{ints.length}</b><span>интеграций</span></div><div><b>{jobs.length}</b><span>вакансий</span></div><div><b>AI</b><span>оценка резюме</span></div></section>
 
-    {tab==='home'&&<div className="tabPane" key="home"><HomeTab isCreator={isCreator}/></div>}    
+    {tab==='home'&&<div className="tabPane" key="home"><HomeTab isCreator={isCreator}/></div>}
+    {tab==='company'&&<div className="tabPane" key="company"><CompanyTab ints={ints} jobs={jobs}/></div>}    
     {tab==='integrations'&&<div className="tabPane" key="integrations"><IntegrationsTab ints={ints} busy={busy} connectHH={connectHH} sync={sync}/></div>}    
     {tab==='jobs'&&<div className="tabPane" key="jobs"><JobsTab loading={loading} filteredJobs={filteredJobs} query={query} setQuery={setQuery} openJob={openJob}/></div>}    
     {tab==='candidates'&&<div className="tabPane" key="candidates"><CandidatesTab setTab={setTab}/></div>}    
@@ -139,6 +140,7 @@ function App(){
 
     <nav className="bottomNav">
       <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span>🏠</span>Главная</button>
+      <button className={tab==='company'?'active':''} onClick={()=>setTab('company')}><span>🏢</span>Компания</button>
       <button className={tab==='jobs'?'active':''} onClick={()=>setTab('jobs')}><span>💼</span>Вакансии</button>
       <button className={tab==='candidates'?'active':''} onClick={()=>setTab('candidates')}><span>👥</span>Кандидаты</button>
       <button className={tab==='integrations'?'active':''} onClick={()=>setTab('integrations')}><span>🔌</span>Интеграции</button>
@@ -149,11 +151,28 @@ function App(){
 
 function HomeTab({isCreator}:{isCreator:boolean}){return <>
   <section className="homeTop"><div className="homeTopText"><span className="eyebrow">dashboard</span><h2>Центр найма</h2><p>Подключи источник, собери отклики и получи понятный рейтинг кандидатов без ручного просмотра сотен резюме.</p></div><div className="miniPreview"><div className="candidateMini good"><span>87</span><b>Мария</b><small>сильный опыт</small></div><div className="candidateMini mid"><span>72</span><b>Иван</b><small>есть риски</small></div><div className="candidateMini low"><span>54</span><b>Анна</b><small>нужны вопросы</small></div></div></section>
-  <section className="companyProfile"><div><span className="eyebrow">company profile</span><h3>Моя компания</h3><p>Профиль работодателя для будущих интеграций и командного доступа.</p></div><div className="companyFacts"><span>🏙️ Город: не указан</span><span>💼 Активные вакансии: 0</span><span>🔌 Источники: HH.ru / Работа.ру</span></div></section>
   <section className="insightStrip"><div><span>⏱️</span><b>Экономия времени</b><p>Не нужно вручную читать каждый отклик.</p></div><div><span>🧠</span><b>Умная оценка</b><p>AI объясняет, почему кандидат подходит.</p></div><div><span>🛡️</span><b>Меньше ошибок</b><p>Сравнение по одинаковым критериям, а не «на глаз».</p></div></section>
   <section className="workflow"><div className="flowCard active"><span>1</span><b>Подключи источник</b><p>HH.ru сейчас, Работа.ру — скоро</p></div><div className="flowLine"/><div className="flowCard"><span>2</span><b>Собери отклики</b><p>Вакансии и кандидаты подтянутся автоматически</p></div><div className="flowLine"/><div className="flowCard"><span>3</span><b>Запусти AI</b><p>Score, риски и вопросы для интервью</p></div></section>
   <section className="featureGrid"><article><div className="featureIcon">⚡</div><h3>Быстрый шортлист</h3><p>AI выделит лучших кандидатов из потока откликов.</p></article><article><div className="featureIcon">🎯</div><h3>Точные вопросы</h3><p>Для каждого кандидата — персональные вопросы по слабым местам.</p></article><article><div className="featureIcon">📊</div><h3>Сравнение кандидатов</h3><p>Все отклики в одном месте: score, риски и сильные стороны.</p></article></section>
   {isCreator&&<section className="creatorPanel"><div><span className="eyebrow">creator mode</span><h2>Панель создателя</h2><p>В Telegram доступны команды /admin, /scan и /leads — бот найдёт компании с активными вакансиями на HH.ru и подготовит текст обращения.</p></div><div className="terminalCard"><code>/scan</code><code>/leads</code><code>/add_admin username</code></div></section>}
+</>}
+
+
+function CompanyTab({ints,jobs}:{ints:Integration[];jobs:Job[]}){return <>
+  <section className="company3dHero">
+    <div><span className="eyebrow">company workspace</span><h2>Моя компания</h2><p>Профиль работодателя, источники кандидатов и настройки команды в одном месте.</p></div>
+    <div className="companyCube"><i>HC</i></div>
+  </section>
+  <section className="company3dGrid">
+    <article><span>🏙️</span><b>Город</b><p>Не указан</p></article>
+    <article><span>💼</span><b>Активные вакансии</b><p>{jobs.length}</p></article>
+    <article><span>🔌</span><b>Интеграции</b><p>{ints.length} подключено</p></article>
+    <article><span>🤖</span><b>AI-режим</b><p>Скоринг и вопросы</p></article>
+  </section>
+  <section className="companySettings3d">
+    <div><h3>Карточка компании</h3><p>Скоро здесь можно будет редактировать название, город, сферу и тон общения с кандидатами.</p></div>
+    <div className="settingsList"><span>✨ Бренд работодателя</span><span>📍 Города найма</span><span>👥 Команда HR</span><span>📄 Шаблоны сообщений</span></div>
+  </section>
 </>}
 
 function IntegrationsTab({ints,busy,connectHH,sync}:{ints:Integration[];busy:string;connectHH:()=>void;sync:(id:number)=>void}){return <><section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section><div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}<article className="glassCard rabotaSoon rabotaPreview"><div className="cardTop"><div className="provider rabotaProvider">р</div><span className="status soon">скоро</span></div><h3>Работа.ру</h3><p>Готовим подключение к Работа.ру, чтобы автоматически подтягивать кандидатов из второго источника.</p><ul className="soonList"><li>вакансии</li><li>отклики</li><li>резюме</li><li>приглашения/отказы</li></ul><button className="smallBtn disabledBtn" disabled>Скоро подключим</button></article></div></>}
