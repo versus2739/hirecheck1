@@ -16,6 +16,8 @@ function App(){
   const [busy,setBusy]=useState('');
   const [toast,setToast]=useState('');
   const [query,setQuery]=useState('');
+  const tgUser=(window as any).Telegram?.WebApp?.initDataUnsafe?.user;
+  const isCreator=['blodoyyy'].includes(String(tgUser?.username||'').toLowerCase());
 
   function notify(text:string){setToast(text); setTimeout(()=>setToast(''),3200)}
   async function load(){
@@ -122,10 +124,10 @@ function App(){
       <article><div className="featureIcon">📊</div><h3>Сравнение кандидатов</h3><p>Все отклики в одном месте: score, риски и сильные стороны.</p></article>
     </section>
 
-    <section className="creatorPanel">
+    {isCreator&&<section className="creatorPanel">
       <div><span className="eyebrow">creator mode</span><h2>Панель создателя</h2><p>В Telegram доступны команды /admin, /scan и /leads — бот найдёт компании с активными вакансиями на HH.ru и подготовит текст обращения.</p></div>
       <div className="terminalCard"><code>/scan</code><code>/leads</code><code>/add_admin username</code></div>
-    </section>
+    </section>}
 
     <section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section>
     <div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}<article className="glassCard rabotaSoon"><div className="cardTop"><div className="provider rabotaProvider">р</div><span className="status soon">скоро</span></div><h3>Работа.ру</h3><p>Интеграция с Работа.ру скоро появится: вакансии, отклики и резюме кандидатов.</p><button className="smallBtn disabledBtn" disabled>Работа.ру скоро</button></article></div>
