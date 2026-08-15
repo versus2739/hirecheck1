@@ -12,5 +12,83 @@ app.get('/api/jobs',(req,res)=>res.json(db.prepare('SELECT * FROM jobs ORDER BY 
 app.get('/api/jobs/:id',(req,res)=>{const job=db.prepare('SELECT * FROM jobs WHERE id=?').get(req.params.id); const apps=db.prepare('SELECT a.*, c.full_name, an.score, an.summary FROM applications a JOIN candidates c ON c.id=a.candidate_id LEFT JOIN ai_analyses an ON an.application_id=a.id WHERE a.job_id=? ORDER BY an.score DESC NULLS LAST, a.created_at DESC').all(req.params.id); res.json({job,applications:apps})});
 app.post('/api/applications/:id/analyze',async(req,res,next)=>{try{const a:any=db.prepare('SELECT * FROM applications WHERE id=?').get(req.params.id); const j:any=db.prepare('SELECT * FROM jobs WHERE id=?').get(a.job_id); const r:any=db.prepare('SELECT * FROM resumes WHERE application_id=? ORDER BY id DESC').get(a.id); const out=await analyzeCandidate(j,a,r); db.prepare('INSERT INTO ai_analyses(application_id,model,score,summary,strengths,risks,missing_info,interview_questions,recommended_status,raw_response) VALUES(?,?,?,?,?,?,?,?,?,?)').run(a.id,'gpt-4o-mini',out.score,out.summary,JSON.stringify(out.strengths||[]),JSON.stringify(out.risks||[]),JSON.stringify(out.missing_info||[]),JSON.stringify(out.interview_questions||[]),out.recommended_status,JSON.stringify(out)); res.json(out)}catch(e){next(e)}});
 app.post('/api/jobs/:id/analyze-all',async(req,res,next)=>{try{const rows:any[]=db.prepare('SELECT id FROM applications WHERE job_id=?').all(req.params.id) as any[]; let count=0; for(const row of rows){ if(!db.prepare('SELECT id FROM ai_analyses WHERE application_id=?').get(row.id)){ const a:any=db.prepare('SELECT * FROM applications WHERE id=?').get(row.id); const j:any=db.prepare('SELECT * FROM jobs WHERE id=?').get(a.job_id); const r:any=db.prepare('SELECT * FROM resumes WHERE application_id=? ORDER BY id DESC').get(a.id); const out=await analyzeCandidate(j,a,r); db.prepare('INSERT INTO ai_analyses(application_id,model,score,summary,strengths,risks,missing_info,interview_questions,recommended_status,raw_response) VALUES(?,?,?,?,?,?,?,?,?,?)').run(a.id,'gpt-4o-mini',out.score,out.summary,JSON.stringify(out.strengths||[]),JSON.stringify(out.risks||[]),JSON.stringify(out.missing_info||[]),JSON.stringify(out.interview_questions||[]),out.recommended_status,JSON.stringify(out)); count++; }} res.json({analyzed:count})}catch(e){next(e)}});
+const tgToken = process.env.TELEGRAM_BOT_TOKEN;
+const webAppUrl = process.env.WEB_APP_URL || process.env.PUBLIC_APP_URL || 'https://hirecheck1-production.up.railway.app';
+​
+const telegramBase = tgToken ? ('https://' + 'api.telegram.org/bot' + tgToken) : '';
+​
+async function telegram(method: string, body: any) {
+  if (!tgToken) return;
+  const response = await fetch(telegramBase + '/' + method, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    console.error('Telegram API error:', response.status, text);
+  }
+}
+​
+const hireCheckKeyboard = {
+  inline_keyboard: [
+    [
+      {
+        text: 'Открыть HireCheck',
+        web_app: { url: webAppUrl }
+      }
+    ]
+  ]
+};
+​
+app.post('/api/telegram/webhook', async (req, res) => {
+  try {
+    const message = req.body?.message;
+    const chatId = message?.chat?.id;
+    const text = message?.text;
+​
+    if (!chatId) return res.json({ ok: true });
+​
+    if (text === '/start') {
+      await telegram('sendMessage', {
+        chat_id: chatId,
+        text:
+          'Привет! Я HireCheck 👋\n\n' +
+          'Помогаю быстро разбирать отклики, находить сильных кандидатов и готовить вопросы для интервью.\n\n' +
+          'Открой мини-приложение ниже:',
+        reply_markup: hireCheckKeyboard
+      });
+    } else {
+      await telegram('sendMessage', {
+        chat_id: chatId,
+        text: 'Нажми кнопку ниже, чтобы открыть HireCheck:',
+        reply_markup: hireCheckKeyboard
+      });
+    }
+​
+    res.json({ ok: true });
+  } catch (e: any) {
+    console.error(e);
+    res.status(500).json({ error: e.message || 'Telegram webhook error' });
+  }
+});
+​
+app.get('/api/telegram/set-webhook', async (req, res) => {
+  try {
+    if (!tgToken) return res.status(400).json({ error: 'TELEGRAM_BOT_TOKEN is not set' });
+    const webhookUrl = `${webAppUrl}/api/telegram/webhook`;
+    const response = await fetch(telegramBase + '/setWebhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || 'Set webhook error' });
+  }
+});
+​
 const __dirname=path.dirname(fileURLToPath(import.meta.url)); const web=path.join(__dirname,'../public_dist'); app.use(express.static(web)); app.get('*',(req,res)=>res.sendFile(path.join(web,'index.html')));
 app.use((err:any,req:any,res:any,next:any)=>res.status(500).json({error:err.message||'Server error'})); app.listen(process.env.PORT||3000,()=>console.log('HireCheck API started'));
+​
