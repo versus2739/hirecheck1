@@ -122,9 +122,19 @@ function App(){
       <article><div className="featureIcon">📣</div><h3>Лиды для роста</h3><p>Создатель может искать бизнесы с активными вакансиями через Telegram.</p></article>
     </section>
 
-    <section className="creatorPanel">
-      <div><span className="eyebrow">creator mode</span><h2>Панель создателя</h2><p>В Telegram доступны команды /admin, /scan и /leads — бот найдёт компании с активными вакансиями на HH.ru и подготовит текст обращения.</p></div>
-      <div className="terminalCard"><code>/scan</code><code>/leads</code><code>/add_admin username</code></div>
+    <section className="quickActions">
+      <button className="actionCard" onClick={connectHH}>
+        <span>🔗</span><b>Подключить источник</b><small>HH.ru сейчас, Работа.ру скоро</small>
+      </button>
+      <button className="actionCard" onClick={load}>
+        <span>🔄</span><b>Обновить данные</b><small>Проверить вакансии и отклики</small>
+      </button>
+      <button className="actionCard" onClick={()=>notify('После подключения источника здесь появятся кандидаты для AI-анализа')}>
+        <span>✨</span><b>AI-шортлист</b><small>Рейтинг лучших кандидатов</small>
+      </button>
+      <button className="actionCard" onClick={()=>notify('Интервью-вопросы появятся после анализа резюме')}>
+        <span>🎙️</span><b>Вопросы интервью</b><small>Персонально под кандидата</small>
+      </button>
     </section>
 
     <section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section>
