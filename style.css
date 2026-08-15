@@ -6,3 +6,72 @@
 .status.soon{background:#fff1e3;color:#d5803b}
 .disabledBtn{background:#d7dde8!important;color:#667085!important;cursor:not-allowed!important;box-shadow:none!important}
 .disabledBtn:hover{transform:none!important}
+
+
+/* Telegram full-screen layout */
+html, body, #root { width: 100%; min-height: 100%; }
+body { min-height: 100vh; min-height: 100dvh; }
+.app{
+  max-width: none;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(80px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+}
+.hero,.stats,.sectionHead,.grid,.candidateList,.loader{
+  width: min(100%, 1120px);
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero{ margin-top: 0; }
+@media(max-width:640px){
+  .app{
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(74px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .hero,.stats,.sectionHead,.grid,.candidateList,.loader{ width:100%; }
+  .hero{ min-height: 42vh; align-content:center; }
+  .grid{ gap:12px; }
+  .glassCard,.jobCard,.empty,.candidate{ border-radius:22px; }
+}
+@media(min-width:900px){
+  .hero{ min-height: 340px; }
+  .grid{ grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
+}
+
+
+/* Reduce white glare, keep same style */
+body{
+  background:
+    radial-gradient(circle at 18% 12%, rgba(30,136,255,.34), transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(124,58,237,.24), transparent 30%),
+    radial-gradient(circle at 65% 88%, rgba(27,182,177,.28), transparent 34%),
+    linear-gradient(135deg,#071827 0%,#0b3f73 46%,#18204a 100%);
+}
+.orb{opacity:.22;filter:blur(46px)}
+.orb1{background:#1d8cff}.orb2{background:#7c3aed}
+.hero{
+  background:linear-gradient(145deg,rgba(15,30,55,.88),rgba(15,38,68,.70));
+  border-color:rgba(125,211,252,.22);
+  box-shadow:0 20px 60px rgba(0,0,0,.28);
+}
+.hero:after{opacity:.18;background:radial-gradient(circle,rgba(125,211,252,.55),transparent 68%)}
+.hero h1,.sectionHead h2{color:#fff}.hero p{color:rgba(255,255,255,.74)}
+.eyebrow{color:#7dd3fc}
+.stats div,.glassCard,.jobCard,.empty,.candidate{
+  background:linear-gradient(145deg,rgba(15,30,55,.82),rgba(16,42,70,.64));
+  border-color:rgba(125,211,252,.20);
+  box-shadow:0 16px 42px rgba(0,0,0,.24);
+}
+.stats b,.glassCard h3,.jobCard h3,.empty h3,.candidate h3{color:#fff}
+.stats span,.glassCard p,.jobCard p,.empty p,.candidate p{color:rgba(255,255,255,.68)}
+.secondary,.back,.search{
+  background:rgba(12,24,44,.72);
+  color:#fff;
+  border-color:rgba(125,211,252,.22);
+}
+.search::placeholder{color:rgba(255,255,255,.55)}
+.status,.badge,.tags span{background:rgba(125,211,252,.14);color:#7dd3fc}
+.provider{box-shadow:0 10px 22px rgba(225,25,50,.24)}
+.brandMark{box-shadow:0 18px 34px rgba(11,107,255,.34)}
+.jobCard:before{opacity:.16}
+.rabotaSoon:before{opacity:.18}
