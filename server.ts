@@ -30,6 +30,34 @@ async function telegram(method: string, body: any) {
   }
 }
 
+
+const leadKeywords=['бариста','официант','продавец','кассир','курьер','администратор','повар','мастер маникюра','автомеханик','уборщик','оператор'];
+const smallBizWords=['кафе','ресторан','кофейня','салон','магазин','студия','авто','сервис','клиника','пекарня','бар','доставка'];
+async function scanHHLeads(limitPerKeyword=6){
+  let seen=0, added=0;
+  for(const text of leadKeywords){
+    const url='https://api.hh.ru/vacancies?text='+encodeURIComponent(text)+'&per_page='+limitPerKeyword+'&only_with_salary=false';
+    const r=await fetch(url,{headers:{'User-Agent':'HireCheck/1.0'}}).catch(()=>null);
+    if(!r || !r.ok) continue;
+    const data:any=await r.json();
+    for(const v of (data.items||[])){
+      seen++;
+      const company=v.employer?.name||'Компания';
+      const title=v.name||text;
+      const city=v.area?.name||'';
+      const hay=(company+' '+title).toLowerCase();
+      const isSmall=smallBizWords.some(w=>hay.includes(w));
+      const reason=isSmall?'Похоже на малый/средний бизнес с активной вакансией':'Активная вакансия на HH.ru';
+      const msg=`Здравствуйте! Увидел вашу вакансию «${title}». Мы делаем HireCheck — сервис, который помогает быстро разбирать отклики, ранжировать кандидатов и готовить вопросы для интервью. Могу показать коротко, как это работает.`;
+      try{
+        const info=db.prepare('INSERT OR IGNORE INTO sales_leads(source,company_name,vacancy_title,city,vacancy_url,reason,outreach_message,status,raw_payload) VALUES(?,?,?,?,?,?,?,?,?)').run('hh',company,title,city,v.alternate_url||v.url,reason,msg,'new',JSON.stringify(v));
+        if(info.changes) added++;
+      }catch(e){}
+    }
+  }
+  return {ok:true,seen,added};
+}
+
 const hireCheckKeyboard = {
   inline_keyboard: [
     [
