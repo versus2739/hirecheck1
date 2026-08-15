@@ -16,6 +16,7 @@ function App(){
   const [busy,setBusy]=useState('');
   const [toast,setToast]=useState('');
   const [query,setQuery]=useState('');
+  const [tab,setTab]=useState<'home'|'jobs'|'candidates'|'integrations'>('home');
   const tgUser=(window as any).Telegram?.WebApp?.initDataUnsafe?.user;
   const isCreator=['blodoyyy'].includes(String(tgUser?.username||'').toLowerCase());
 
@@ -130,10 +131,16 @@ function App(){
     </section>}
 
     <section className="sectionHead"><div><h2>Интеграции</h2><p>Подключи источники кандидатов и синхронизируй отклики.</p></div></section>
-    <div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}<article className="glassCard rabotaSoon"><div className="cardTop"><div className="provider rabotaProvider">р</div><span className="status soon">скоро</span></div><h3>Работа.ру</h3><p>Интеграция с Работа.ру скоро появится: вакансии, отклики и резюме кандидатов.</p><button className="smallBtn disabledBtn" disabled>Работа.ру скоро</button></article></div>
+    <div className="grid">{ints.map(i=><article className="glassCard" key={i.id}><div className="cardTop"><div className="provider">hh</div><span className="status">{i.status}</span></div><h3>{i.provider.toUpperCase()}</h3><p>Синхронизация вакансий, откликов и резюме.</p><button className="smallBtn" onClick={()=>sync(i.id)} disabled={busy==='sync-'+i.id}>{busy==='sync-'+i.id?'Синхронизация…':'Синхронизировать'}</button></article>)}{!ints.length&&<article className="empty"><h3>Пока нет интеграций</h3><p>HH заявка на API может быть на рассмотрении. Когда ключи будут готовы — подключишь в один клик.</p><button className="smallBtn" onClick={connectHH}>Попробовать HH</button></article>}<article className="glassCard rabotaSoon rabotaPreview"><div className="cardTop"><div className="provider rabotaProvider">р</div><span className="status soon">скоро</span></div><h3>Работа.ру</h3><p>Готовим подключение к Работа.ру, чтобы автоматически подтягивать кандидатов из второго источника.</p><ul className="soonList"><li>вакансии</li><li>отклики</li><li>резюме</li><li>приглашения/отказы</li></ul><button className="smallBtn disabledBtn" disabled>Скоро подключим</button></article></div>
 
     <section className="sectionHead"><div><h2>Вакансии</h2><p>Открой вакансию, чтобы посмотреть кандидатов и запустить AI-анализ.</p></div><input className="search" placeholder="Поиск вакансии…" value={query} onChange={e=>setQuery(e.target.value)}/></section>
     {loading?<div className="loader">Загружаю…</div>:<div className="grid jobs">{filteredJobs.map(j=><article className="jobCard" key={j.id} onClick={()=>openJob(j.id)}><span className="badge">{j.external_provider||'manual'}</span><h3>{j.title}</h3><p>{j.city||'Город не указан'}</p><div className="openHint">Открыть →</div></article>)}{!filteredJobs.length&&<article className="empty"><h3>Вакансий пока нет</h3><p>После подключения HH или ручного режима здесь появится список.</p></article>}</div>}
+    <nav className="bottomNav">
+      <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span>🏠</span>Главная</button>
+      <button className={tab==='jobs'?'active':''} onClick={()=>{setTab('jobs'); document.querySelector('.jobs')?.scrollIntoView({behavior:'smooth'});}}><span>💼</span>Вакансии</button>
+      <button className={tab==='candidates'?'active':''} onClick={()=>{setTab('candidates'); notify('Кандидаты появятся после синхронизации откликов')}}><span>👥</span>Кандидаты</button>
+      <button className={tab==='integrations'?'active':''} onClick={()=>{setTab('integrations'); document.querySelector('.grid')?.scrollIntoView({behavior:'smooth'});}}><span>🔌</span>Интеграции</button>
+    </nav>
   </main>
 }
 function Score({score}:{score:any}){const n=Number(score); return <strong className={(n>=80?'good':n>=55?'mid':'low')+' score'}>{score??'—'}</strong>}

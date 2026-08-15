@@ -152,3 +152,32 @@ body{
 .actionCard span,.featureIcon,.flowCard span{transition:.2s transform,.2s background}
 .primary:active,.secondary:active,.smallBtn:active,.actionCard:active,.glassCard:active,.jobCard:active{transform:scale(.97)!important}
 @media(hover:none){.primary:hover,.secondary:hover,.smallBtn:hover,.back:hover,.actionCard:hover,.featureGrid article:hover,.flowCard:hover,.glassCard:hover,.jobCard:hover{transform:none!important}}
+
+/* Hover only for clickable / future-clickable elements */
+.featureGrid article:hover,.flowCard:hover,.glassCard:hover{
+  transform:none!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.16)!important;
+  border-color:rgba(125,211,252,.18)!important;
+}
+.featureGrid article:hover .featureIcon,.flowCard:hover span{
+  transform:none!important;
+  background:rgba(125,211,252,.13)!important;
+}
+.glassCard::after,.featureGrid article::after,.flowCard::after{display:none!important}
+.primary:hover,.secondary:hover,.smallBtn:not(:disabled):hover,.back:hover,.actionCard:hover,.jobCard:hover{
+  transform:translateY(-4px) scale(1.025)!important;
+  border-color:rgba(125,211,252,.65)!important;
+  box-shadow:0 24px 58px rgba(0,0,0,.30),0 0 0 1px rgba(125,211,252,.18)!important;
+}
+.smallBtn:disabled:hover,.disabledBtn:hover{
+  transform:none!important;
+  box-shadow:none!important;
+  cursor:not-allowed!important;
+}
+.actionCard:hover span{transform:rotate(-6deg) scale(1.12)!important}
+.jobCard{cursor:pointer}.actionCard,.primary,.secondary,.smallBtn:not(:disabled),.back{cursor:pointer}.featureGrid article,.flowCard,.glassCard{cursor:default!important}
+
+/* Bottom app navigation + Rabota preview */
+.bottomNav{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;width:min(94%,520px);display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px;border-radius:24px;background:rgba(7,24,39,.78);border:1px solid rgba(125,211,252,.24);backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(0,0,0,.34)}.bottomNav button{border:0;background:transparent;color:rgba(255,255,255,.64);border-radius:18px;padding:9px 6px;min-height:54px;font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.18s background,.18s color,.18s transform}.bottomNav button span{font-size:18px}.bottomNav button:hover,.bottomNav button.active{background:linear-gradient(135deg,rgba(22,119,255,.55),rgba(124,58,237,.55));color:white;transform:translateY(-2px)}
+.rabotaPreview{min-height:260px}.soonList{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 16px;padding:0;list-style:none}.soonList li{padding:8px 10px;border-radius:12px;background:rgba(255,138,0,.12);border:1px solid rgba(255,176,32,.22);color:#ffd29a;font-weight:800;font-size:13px}.rabotaPreview:after{content:"";position:absolute;right:-30px;bottom:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,138,0,.34),transparent 70%);pointer-events:none}
+@media(max-width:640px){.bottomNav{width:calc(100% - 18px);border-radius:22px}.bottomNav button{font-size:11px;min-height:52px}.soonList{grid-template-columns:1fr 1fr}}
