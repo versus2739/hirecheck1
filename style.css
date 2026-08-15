@@ -118,3 +118,37 @@ body{
 }
 .quickActions .actionCard span{display:grid!important;place-items:center!important;width:48px!important;height:48px!important;border-radius:18px!important;background:rgba(125,211,252,.13)!important;font-size:24px!important;margin:0 0 12px!important;flex:0 0 auto!important}.quickActions .actionCard b{display:block!important;color:#fff!important;font-size:17px!important;margin:0 0 6px!important}.quickActions .actionCard small{display:block!important;color:rgba(255,255,255,.64)!important;font-size:13px!important;line-height:1.35!important}
 @media(max-width:640px){.quickActions{grid-template-columns:1fr 1fr!important}.quickActions .actionCard{min-height:124px!important;padding:14px!important;border-radius:22px!important}.quickActions .actionCard span{width:42px!important;height:42px!important;border-radius:16px!important}.quickActions .actionCard b{font-size:15px!important}.quickActions .actionCard small{font-size:12px!important}}
+
+/* Strong hover/tap reactions */
+.primary,.secondary,.smallBtn,.back,.actionCard,.glassCard,.jobCard,.featureGrid article,.flowCard{
+  position:relative;
+  overflow:hidden;
+}
+.primary::after,.secondary::after,.smallBtn::after,.actionCard::after,.glassCard::after,.jobCard::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.18) 45%,transparent 70%);
+  transform:translateX(-130%);
+  transition:transform .55s ease;
+  pointer-events:none;
+}
+.primary:hover::after,.secondary:hover::after,.smallBtn:hover::after,.actionCard:hover::after,.glassCard:hover::after,.jobCard:hover::after{
+  transform:translateX(130%);
+}
+.primary:hover,.secondary:hover,.smallBtn:hover,.back:hover{
+  transform:translateY(-3px) scale(1.03)!important;
+  box-shadow:0 18px 40px rgba(22,119,255,.35),0 0 0 1px rgba(125,211,252,.30)!important;
+}
+.actionCard:hover,.featureGrid article:hover,.flowCard:hover,.glassCard:hover,.jobCard:hover{
+  transform:translateY(-6px) scale(1.015)!important;
+  border-color:rgba(125,211,252,.65)!important;
+  box-shadow:0 28px 70px rgba(0,0,0,.34),0 0 0 1px rgba(125,211,252,.18)!important;
+}
+.actionCard:hover span,.featureGrid article:hover .featureIcon,.flowCard:hover span{
+  transform:rotate(-6deg) scale(1.12);
+  background:linear-gradient(135deg,rgba(22,119,255,.55),rgba(124,58,237,.55))!important;
+}
+.actionCard span,.featureIcon,.flowCard span{transition:.2s transform,.2s background}
+.primary:active,.secondary:active,.smallBtn:active,.actionCard:active,.glassCard:active,.jobCard:active{transform:scale(.97)!important}
+@media(hover:none){.primary:hover,.secondary:hover,.smallBtn:hover,.back:hover,.actionCard:hover,.featureGrid article:hover,.flowCard:hover,.glassCard:hover,.jobCard:hover{transform:none!important}}
