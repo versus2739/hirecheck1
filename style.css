@@ -181,3 +181,58 @@ body{
 .homeChips{display:none!important}
 .insightStrip{width:min(100%,1120px);margin:0 auto 22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.insightStrip div{padding:16px;border-radius:22px;background:linear-gradient(145deg,rgba(15,30,55,.76),rgba(16,42,70,.54));border:1px solid rgba(125,211,252,.20);box-shadow:0 14px 38px rgba(0,0,0,.16)}.insightStrip span{display:grid;place-items:center;width:42px;height:42px;border-radius:16px;background:rgba(125,211,252,.13);font-size:22px;margin-bottom:10px}.insightStrip b{display:block;color:#fff;font-size:17px;margin-bottom:6px}.insightStrip p{margin:0;color:rgba(255,255,255,.66);font-size:14px;line-height:1.35}
 @media(max-width:640px){.insightStrip{grid-template-columns:1fr}.insightStrip div{padding:14px;border-radius:20px}}
+
+/* Final fixes: center home content and force custom bottom nav */
+.homeTop{display:grid!important;grid-template-columns:1.1fr .9fr!important;color:#fff!important}
+.homeTopText h2,.homeTopText p,.candidateMini b,.candidateMini small{color:inherit!important}
+.homeTopText p,.candidateMini small{color:rgba(255,255,255,.72)!important}
+.miniPreview{display:grid!important}
+.bottomNav{
+  position:fixed!important;
+  left:50%!important;
+  bottom:max(12px,env(safe-area-inset-bottom))!important;
+  transform:translateX(-50%)!important;
+  z-index:9999!important;
+  width:min(94%,520px)!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,1fr)!important;
+  gap:6px!important;
+  padding:8px!important;
+  border-radius:24px!important;
+  background:rgba(7,24,39,.88)!important;
+  border:1px solid rgba(125,211,252,.24)!important;
+  backdrop-filter:blur(18px)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.34)!important;
+}
+.bottomNav button{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  background:transparent!important;
+  color:rgba(255,255,255,.64)!important;
+  border-radius:18px!important;
+  padding:9px 6px!important;
+  min-height:54px!important;
+  font-weight:800!important;
+  font-size:12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+  white-space:normal!important;
+  line-height:1.1!important;
+}
+.bottomNav button span{font-size:18px!important;line-height:1!important}
+.bottomNav button:hover,.bottomNav button.active{
+  background:linear-gradient(135deg,rgba(22,119,255,.72),rgba(124,58,237,.72))!important;
+  color:#fff!important;
+  transform:translateY(-2px)!important;
+}
+@media(max-width:640px){
+  .homeTop{grid-template-columns:1fr!important}
+  .bottomNav{width:calc(100% - 18px)!important;border-radius:22px!important}
+  .bottomNav button{font-size:11px!important;min-height:52px!important}
+}
