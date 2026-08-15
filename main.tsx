@@ -24,6 +24,8 @@ function App(){
   const [creatorSummary,setCreatorSummary]=useState<any>(null);
   const [creatorLeads,setCreatorLeads]=useState<any[]>([]);
   const [creatorAdmins,setCreatorAdmins]=useState<any[]>([]);
+  const [adminModal,setAdminModal]=useState(false);
+  const [adminInput,setAdminInput]=useState('');
 
   function notify(text:string){setToast(text); setTimeout(()=>setToast(''),3200)}
   async function load(){
@@ -100,9 +102,9 @@ function App(){
     await loadCreator();
   }
   async function addCreatorAdmin(){
-    const u=prompt('Telegram username без @'); if(!u) return;
+    const u=adminInput.replace('@','').trim(); if(!u) return notify('Введи Telegram username');
     await fetch(API+'/api/creator/admins?username='+encodeURIComponent(username),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_username:u})});
-    notify('Админ добавлен'); await loadCreator();
+    setAdminInput(''); setAdminModal(false); notify('Админ добавлен'); await loadCreator();
   }
   useEffect(()=>{ if(tab==='creator') loadCreator(); },[tab]);
 
@@ -128,7 +130,9 @@ function App(){
     {tab==='integrations'&&<IntegrationsTab ints={ints} busy={busy} connectHH={connectHH} sync={sync}/>}    
     {tab==='jobs'&&<JobsTab loading={loading} filteredJobs={filteredJobs} query={query} setQuery={setQuery} openJob={openJob}/>}    
     {tab==='candidates'&&<CandidatesTab setTab={setTab}/>}    
-    {tab==='creator'&&isCreator&&<CreatorTab summary={creatorSummary} leads={creatorLeads} admins={creatorAdmins} busy={busy} scan={creatorScan} reload={loadCreator} addAdmin={addCreatorAdmin} setLeadStatus={leadStatus}/>}    
+    {tab==='creator'&&isCreator&&<CreatorTab summary={creatorSummary} leads={creatorLeads} admins={creatorAdmins} busy={busy} scan={creatorScan} reload={loadCreator} addAdmin={()=>setAdminModal(true)} setLeadStatus={leadStatus}/>}    
+
+    {adminModal&&<div className="modalBackdrop" onClick={()=>setAdminModal(false)}><div className="creatorModal" onClick={e=>e.stopPropagation()}><button className="modalClose" onClick={()=>setAdminModal(false)}>×</button><div className="modalIcon">👑</div><h3>Добавить создателя</h3><p>Этот пользователь увидит вкладку «Создатель» и сможет управлять лидами.</p><label>Telegram username</label><div className="adminInputWrap"><span>@</span><input autoFocus value={adminInput} onChange={e=>setAdminInput(e.target.value)} placeholder="username"/></div><div className="modalActions"><button className="secondary" onClick={()=>setAdminModal(false)}>Отмена</button><button className="primary" onClick={addCreatorAdmin}>Добавить</button></div></div></div>}
 
     <nav className="bottomNav">
       <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}><span>🏠</span>Главная</button>
@@ -155,12 +159,13 @@ function JobsTab({loading,filteredJobs,query,setQuery,openJob}:{loading:boolean;
 function CandidatesTab({setTab}:{setTab:(t:Tab)=>void}){return <><section className="sectionHead"><div><h2>Кандидаты</h2><p>Здесь появятся кандидаты после синхронизации откликов.</p></div></section><div className="grid"><article className="empty"><h3>Кандидатов пока нет</h3><p>Подключи HH.ru, синхронизируй вакансии и отклики — потом здесь будет список кандидатов, AI-score и вопросы для интервью.</p><button className="smallBtn" onClick={()=>setTab('integrations')}>Перейти к интеграциям</button></article></div></>}
 
 
-function CreatorTab({summary,leads,admins,busy,scan,reload,addAdmin,setLeadStatus}:{summary:any;leads:any[];admins:any[];busy:string;scan:()=>void;reload:()=>void;addAdmin:()=>void;setLeadStatus:(id:number,status:string)=>void}){return <>
-  <section className="sectionHead"><div><h2>Панель создателя</h2><p>Управление поиском клиентов, лидами и доступами прямо из mini app.</p></div></section>
+function CreatorTab({summary,leads,admins,busy,scan,reload,addAdmin,setLeadStatus}:{summary:any;leads:any[];admins:any[];busy:string;scan:()=>void;reload:()=>void;addAdmin:()=>void;setLeadStatus:(id:number,status:string)=>void}){const newLeads=leads.filter(l=>l.status==='new'||l.status==='later'); return <>
+  <section className="creatorHero"><div><span className="eyebrow">creator control</span><h2>Панель создателя</h2><p>Ищи клиентов, управляй лидами и доступами прямо из mini app.</p></div><div className="creatorGlow">👑</div></section>
   <section className="creatorStats"><div><b>{summary?.leads??'—'}</b><span>всего лидов</span></div><div><b>{summary?.fresh??'—'}</b><span>новые/позже</span></div><div><b>{summary?.contacted??'—'}</b><span>связались</span></div><div><b>{summary?.admins??'—'}</b><span>админов</span></div></section>
-  <section className="creatorActions"><button className="primary" onClick={scan} disabled={busy==='creator-scan'}>{busy==='creator-scan'?'Ищу клиентов…':'Сканировать HH.ru'}</button><button className="secondary" onClick={reload}>Обновить панель</button><button className="secondary" onClick={addAdmin}>Добавить админа</button></section>
-  <section className="creatorBox"><h3>Админы</h3><div className="adminList">{admins.map(a=><span key={a.id}>@{a.telegram_username} · {a.role}</span>)}</div></section>
-  <section className="creatorBox"><h3>Лиды</h3><div className="leadList">{leads.slice(0,12).map(l=><article className="leadCard" key={l.id}><div><b>{l.company_name}</b><p>{l.vacancy_title} · {l.city||'город не указан'}</p><small>{l.reason}</small></div><div className="leadBtns"><a href={l.vacancy_url} target="_blank">Открыть</a><button onClick={()=>navigator.clipboard?.writeText(l.outreach_message||'')}>Копировать</button><button onClick={()=>setLeadStatus(l.id,'contacted')}>Связался</button><button onClick={()=>setLeadStatus(l.id,'hidden')}>Скрыть</button></div></article>)}{!leads.length&&<p className="muted">Лидов пока нет. Запусти сканирование.</p>}</div></section>
+  <section className="creatorActions pretty"><button className="primary" onClick={scan} disabled={busy==='creator-scan'}>🔎 {busy==='creator-scan'?'Ищу клиентов…':'Сканировать HH.ru'}</button><button className="secondary" onClick={reload}>🔄 Обновить</button><button className="secondary" onClick={addAdmin}>👑 Добавить создателя</button><button className="secondary" onClick={()=>navigator.clipboard?.writeText(newLeads.map(l=>`${l.company_name} — ${l.vacancy_title}\n${l.vacancy_url}\n${l.outreach_message}`).join('\n\n'))}>📋 Скопировать лиды</button></section>
+  <section className="creatorToolGrid"><article><span>🧲</span><b>Автопоиск клиентов</b><p>Ищет компании с активными вакансиями на HH.ru.</p></article><article><span>✉️</span><b>Текст обращения</b><p>Для каждого лида готовится аккуратный текст без автоспама.</p></article><article><span>👥</span><b>Команда</b><p>Добавляй людей, которым доступна creator-панель.</p></article></section>
+  <section className="creatorBox"><h3>Создатели и админы</h3><div className="adminList">{admins.map(a=><span key={a.id}>@{a.telegram_username} · {a.role}</span>)}</div></section>
+  <section className="creatorBox"><div className="boxTitle"><h3>Лиды</h3><span>{newLeads.length} активных</span></div><div className="leadList">{leads.slice(0,12).map(l=><article className="leadCard" key={l.id}><div><b>{l.company_name}</b><p>{l.vacancy_title} · {l.city||'город не указан'}</p><small>{l.reason}</small></div><div className="leadBtns"><a href={l.vacancy_url} target="_blank">Открыть</a><button onClick={()=>navigator.clipboard?.writeText(l.outreach_message||'')}>Копировать</button><button onClick={()=>setLeadStatus(l.id,'later')}>Позже</button><button onClick={()=>setLeadStatus(l.id,'contacted')}>Связался</button><button onClick={()=>setLeadStatus(l.id,'hidden')}>Скрыть</button></div></article>)}{!leads.length&&<p className="muted">Лидов пока нет. Запусти сканирование.</p>}</div></section>
 </>}
 
 function Score({score}:{score:any}){const n=Number(score); return <strong className={(n>=80?'good':n>=55?'mid':'low')+' score'}>{score??'—'}</strong>}
