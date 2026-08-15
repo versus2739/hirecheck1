@@ -33,6 +33,26 @@ async function telegram(method: string, body: any) {
 
 const leadKeywords=['бариста','официант','продавец','кассир','курьер','администратор','повар','мастер маникюра','автомеханик','уборщик','оператор'];
 const smallBizWords=['кафе','ресторан','кофейня','салон','магазин','студия','авто','сервис','клиника','пекарня','бар','доставка'];
+async function scanHHLeadsCustom(customText='', customCity=''){
+  if(!customText && !customCity) return scanHHLeads();
+  const old=leadKeywords.slice();
+  const keywords=customText?[customText]:old;
+  let seen=0, added=0;
+  for(const text of keywords){
+    const url='https://api.hh.ru/vacancies?text='+encodeURIComponent(text+' '+customCity)+'&per_page=10&only_with_salary=false';
+    const r=await fetch(url,{headers:{'User-Agent':'HireCheck/1.0'}}).catch(()=>null);
+    if(!r||!r.ok) continue;
+    const data:any=await r.json();
+    for(const v of (data.items||[])){
+      seen++; const company=v.employer?.name||'Компания'; const title=v.name||text; const city=v.area?.name||customCity||'';
+      const reason='Найдено по фильтру: '+[customText,customCity].filter(Boolean).join(', ');
+      const msg=`Здравствуйте! Увидел вашу вакансию «${title}». Мы делаем HireCheck — сервис, который помогает быстро разбирать отклики, ранжировать кандидатов и готовить вопросы для интервью. Могу показать коротко, как это работает.`;
+      try{const info=db.prepare('INSERT OR IGNORE INTO sales_leads(source,company_name,vacancy_title,city,vacancy_url,reason,outreach_message,status,raw_payload) VALUES(?,?,?,?,?,?,?,?,?)').run('hh',company,title,city,v.alternate_url||v.url,reason,msg,'new',JSON.stringify(v)); if(info.changes) added++;}catch(e){}
+    }
+  }
+  return {ok:true,seen,added};
+}
+
 async function scanHHLeads(limitPerKeyword=6){
   let seen=0, added=0;
   for(const text of leadKeywords){
@@ -126,7 +146,7 @@ app.get('/api/creator/admins',(req,res)=>{ if(!requireCreator(req,res)) return; 
 app.post('/api/creator/admins',(req,res)=>{ if(!requireCreator(req,res)) return; const username=String(req.body.telegram_username||req.body.newUsername||'').replace('@','').trim(); if(!username) return res.status(400).json({error:'telegram_username required'}); db.prepare('INSERT OR IGNORE INTO creator_users(telegram_username,role) VALUES(?,?)').run(username,req.body.role||'admin'); res.json({ok:true}); });
 app.delete('/api/creator/admins/:username',(req,res)=>{ const me=requireCreator(req,res); if(!me) return; const username=String(req.params.username||'').replace('@',''); if(username.toLowerCase()==='blodoyyy') return res.status(400).json({error:'cannot remove owner'}); db.prepare('DELETE FROM creator_users WHERE lower(telegram_username)=lower(?)').run(username); res.json({ok:true}); });
 app.get('/api/creator/leads',(req,res)=>{ if(!requireCreator(req,res)) return; res.json(db.prepare('SELECT * FROM sales_leads ORDER BY created_at DESC LIMIT 100').all()); });
-app.post('/api/creator/scan',(req,res,next)=>{ if(!requireCreator(req,res)) return; scanHHLeads().then(r=>res.json(r)).catch(next); });
+app.post('/api/creator/scan',(req,res,next)=>{ if(!requireCreator(req,res)) return; const text=String(req.body?.text||req.query.text||''); const city=String(req.body?.city||req.query.city||''); scanHHLeadsCustom(text,city).then(r=>res.json(r)).catch(next); });
 app.post('/api/creator/leads/:id/status',(req,res)=>{ if(!requireCreator(req,res)) return; db.prepare('UPDATE sales_leads SET status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.body.status||'new',req.params.id); res.json({ok:true}); });
 app.post('/api/creator/broadcast-test',(req,res)=>{ if(!requireCreator(req,res)) return; res.json({ok:true,message:'Тестовая функция готова. Массовые сообщения не отправляем без подтверждения.'}); });
 
