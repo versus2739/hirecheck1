@@ -388,3 +388,68 @@ body{overscroll-behavior:none!important}
   .sectionHead h2{font-size:28px!important}.sectionHead p{font-size:13px!important}.search{height:44px!important;font-size:14px!important}
   .grid{max-height:calc(100dvh - 300px)!important}.empty,.glassCard,.jobCard{padding:14px!important}.company3dHero{padding:14px!important}.company3dHero h2{font-size:26px!important}.company3dGrid article{padding:10px!important}.companySettings3d{display:none!important}
 }
+
+/* Allow smooth scrolling + performance optimization */
+html,body,#root{
+  height:auto!important;
+  min-height:100%!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+body{
+  overscroll-behavior-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+.app{
+  height:auto!important;
+  min-height:100dvh!important;
+  overflow:visible!important;
+  padding:8px 8px calc(96px + env(safe-area-inset-bottom))!important;
+  transform:none!important;
+  perspective:none!important;
+}
+.tabPane{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+  animation:tabFadeSimple .18s ease-out both!important;
+  filter:none!important;
+}
+@keyframes tabFadeSimple{
+  from{opacity:.35;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+/* Reduce laggy 3D effects on mobile */
+.hero,.stats div,.homeTop,.featureGrid article,.flowCard,.glassCard,.empty,.creatorBox,.creatorStats div,.company3dHero,.company3dGrid article,.companySettings3d,.jobCard,.candidate,.leadCard{
+  transform:none!important;
+  transform-style:flat!important;
+  will-change:auto!important;
+  filter:none!important;
+}
+.hero:after,.homeTop:after,.company3dHero:after,.rabotaPreview:after{display:none!important}
+.orb{filter:blur(22px)!important;opacity:.35!important;animation:none!important}
+.primary,.secondary,.smallBtn,.bottomNav button{
+  will-change:transform!important;
+}
+.featureGrid article:hover,.flowCard:hover,.glassCard:hover,.company3dGrid article:hover,.actionCard:hover,.jobCard:hover{
+  transform:none!important;
+}
+.bottomNav{
+  position:fixed!important;
+  left:8px!important;
+  right:8px!important;
+  bottom:max(8px,env(safe-area-inset-bottom))!important;
+  z-index:99999!important;
+  transform:none!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+}
+@media(max-width:760px){
+  .app{overflow:visible!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+  .tabPane{height:auto!important;overflow:visible!important}
+  .grid{max-height:none!important;overflow:visible!important}
+  .creatorBox{max-height:none!important;overflow:visible!important}
+  .companySettings3d{display:grid!important}
+  .hero{position:relative!important;top:auto!important}
+  .bottomNav{padding:5px!important;box-shadow:0 10px 28px rgba(0,0,0,.35)!important}
+}
